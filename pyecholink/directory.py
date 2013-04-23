@@ -27,13 +27,26 @@ class Directory(object):
         self.callsign = callsign
         self.password = password
 
-    def online(self, description):
+    def online(self, description="Online"):
+        """Register the station 'online' with the directory server.
+
+        Keyword arguments:
+        description -- the 'comment' to show to other stations (default 'Online')
+
+        """
         self.__set_status("ONLINE3.38", description)
 
-    def busy(self, description):
+    def busy(self, description="Busy"):
+        """Register the station as 'busy' with the directory server.
+
+        Keyword arguments:
+        description -- the 'comment' to show to other stations (default 'Busy')
+
+        """
         self.__set_status("BUSY3.40", description)
 
     def offline(self):
+        """Tell the directory server the station is 'offline'"""
         self.__set_status("OFF-V3.40", "Offline")
 
     def __set_status(self, status, description):
@@ -44,11 +57,17 @@ class Directory(object):
                 status + 
                 "(" + localTime + ")\n" + 
                 description + 
-                "\r")
+                "\r"
+        )
         assert self.__socket_file.readline().startswith("OK")
         self.__disconnect()
 
     def listing(self):
+        """List all stations registered with the directory server.
+        
+        Returns a tuple of ('motd', 'stations')
+        
+        """
         self.__connect()
         self.socket.sendall("s\r")
         stations = []
