@@ -45,7 +45,7 @@ class Directory(object):
                 "(" + localTime + ")\n" + 
                 description + 
                 "\r")
-        assert self.socket_file.readline().startswith("OK")
+        assert self.__socket_file.readline().startswith("OK")
         self.__disconnect()
 
     def listing(self):
@@ -53,23 +53,23 @@ class Directory(object):
         self.socket.sendall("s\r")
         stations = []
         motd = ""
-        assert self.socket_file.readline().startswith("@@@")
-        count = int(self.socket_file.readline())
+        assert self.__socket_file.readline().startswith("@@@")
+        count = int(self.__socket_file.readline())
         for index in range(count):
             station = Station()
-            station.read(self.socket_file)
+            station.read(self.__socket_file)
             if not station.node_id:
                 motd += station.data + "\n"
             else:
                 stations.append(station)
-        assert self.socket_file.readline().startswith("+++")
+        assert self.__socket_file.readline().startswith("+++")
         self.__disconnect()
         return (motd, stations)
 
     def __connect(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.HOST, self.PORT))
-        self.socket_file = self.socket.makefile()
+        self.__socket_file = self.socket.makefile()
 
     def __disconnect(self):
         self.socket.close()
