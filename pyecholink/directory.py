@@ -6,10 +6,10 @@ class StationType:
 
 class Station:
     def read(self, reader):
-        self.callsign = reader.readline().strip()
-        self.data = reader.readline().strip()
-        self.node_id = reader.readline().strip()
-        self.ip_address = reader.readline().strip()
+        self.callsign = reader.readline()[:-1]
+        self.data = reader.readline()[:-1]
+        self.node_id = reader.readline()[:-1]
+        self.ip_address = reader.readline()[:-1]
         if self.callsign.endswith("-L"):
             self.station_type = StationType.Link
         elif self.callsign.endswith("-R"):
@@ -18,6 +18,27 @@ class Station:
             self.station_type = StationType.Conference
         else:
             self.station_type = StationType.Node
+
+class StationList:
+    stations = []
+
+    def append(self, station):
+        self.stations.append(station)
+
+    def nodes(self):
+        return self.__filter(StationType.Node)
+
+    def links(self):
+        return self.__filter(StationType.Link)
+
+    def repeaters(self):
+        return self.__filter(StationType.Repeater)
+
+    def conferences(self):
+        return self.__filter(StationType.Conference)
+
+    def __filter(self, station_type):
+        return [station for station in self.stations if station.station_type == station_type]
 
 class Directory(object):
     HOST = "servers.echolink.org"
@@ -65,19 +86,19 @@ class Directory(object):
     def listing(self):
         """List all stations registered with the directory server.
         
-        Returns a tuple of ('motd', 'stations')
+        Returns a tuple of ('motd', 'station_list')
         
         """
         self.__connect()
         self.socket.sendall("s\r")
-        stations = []
+        stations = StationList()
         motd = ""
         assert self.__socket_file.readline().startswith("@@@")
         count = int(self.__socket_file.readline())
         for index in range(count):
             station = Station()
             station.read(self.__socket_file)
-            if not station.node_id:
+            if station.ip_address == "127.0.0.1":
                 motd += station.data + "\n"
             else:
                 stations.append(station)
